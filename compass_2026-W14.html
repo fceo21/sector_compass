@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-FIN 섹터나침반 3월 5주</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2d3147;
+    --text: #e0e4f0; --muted: #7a8099; --accent: #e03020;
+    --pos: #e03020; --neg: #1565c0; --neu: #9e9e9e;
+    --strong-c:   #d32f2f;
+    --positive-c: #e57373;
+    --caution-c:  #1565c0;
+    --neutral-c:  #9e9e9e;
+    --dormant-c:  #616161;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+          font-family: 'Segoe UI','Noto Sans KR',sans-serif; font-size:14px; line-height:1.6; }
+  .container { max-width:1400px; margin:0 auto; padding:24px; }
+
+  /* 헤더 */
+  .header { margin-bottom:28px; border-bottom:1px solid var(--border); padding-bottom:16px; }
+  .header h1 { font-size:24px; font-weight:700; letter-spacing:-0.5px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .header h1 .brand { color:var(--accent); }
+  .header h1 .week  { color:var(--text); }
+  .week-nav-btn { font-size:12px; padding:3px 10px; border-radius:5px; border:1px solid var(--border);
+                   background:var(--card); color:var(--text); text-decoration:none; white-space:nowrap; }
+  .week-nav-btn:hover { background:#222536; }
+  .week-nav-btn.disabled { color:var(--muted); cursor:default; opacity:.4; pointer-events:none; }
+  .subtitle { color:var(--muted); font-size:12px; margin-top:4px; }
+  .stats-row { display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; }
+  .rpt-link { color:inherit; text-decoration:none; }
+  .rpt-link:hover { text-decoration:underline; color:var(--accent); }
+  .stat-box { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px 20px; }
+  .stat-box .label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+  .stat-box .value { font-size:22px; font-weight:700; margin-top:2px; }
+
+  /* 신호 카드 */
+  .section-title { font-size:16px; font-weight:600; margin-bottom:12px; color:var(--text); }
+  .signal-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:28px; }
+  .signal-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .signal-card.strong   { border-top:3px solid var(--strong-c); }
+  .signal-card.positive { border-top:3px solid var(--positive-c); }
+  .signal-card.caution  { border-top:3px solid var(--caution-c); }
+  .signal-card.neutral  { border-top:3px solid var(--neutral-c); }
+  .signal-card.dormant  { border-top:3px solid var(--dormant-c); }
+  .sig-header { font-weight:700; font-size:15px; margin-bottom:9px; }
+  .strong   .sig-header { color:var(--strong-c); }
+  .positive .sig-header { color:var(--positive-c); }
+  .caution  .sig-header { color:var(--caution-c); }
+  .neutral  .sig-header { color:var(--neutral-c); }
+  .dormant  .sig-header { color:var(--dormant-c); }
+  .signal-card ul { list-style:none; }
+  .signal-card li { padding:5px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .signal-card li:last-child { border:none; }
+  .tone-score { font-weight:700; font-size:12px; }
+  .tone-score.pos { color:var(--pos); }
+  .tone-score.neg { color:var(--neg); }
+  .tone-score.neu { color:var(--neu); }
+  .cnt-small { color:var(--muted); font-size:11px; cursor:default;
+                border-bottom:1px dotted var(--muted); }
+
+  /* 섹터 요약 */
+  .summary-section { margin-bottom:36px; }
+  .summary-block { background:var(--card); border:1px solid var(--border);
+                    border-radius:10px; margin-bottom:14px; overflow:hidden; }
+  .summary-block.strong  { border-left:4px solid var(--strong-c); }
+  .summary-block.positive{ border-left:4px solid var(--positive-c); }
+  .summary-block.caution { border-left:4px solid var(--caution-c); }
+  .sum-header { display:flex; align-items:center; gap:10px; padding:12px 16px;
+                 border-bottom:1px solid var(--border); }
+  .sum-sector { font-size:16px; font-weight:700; }
+  .sig-badge-sm { font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; }
+  .strong  .sig-badge-sm { background:rgba(211,47,47,.15);  color:var(--strong-c); }
+  .positive .sig-badge-sm { background:rgba(229,115,115,.15); color:var(--positive-c); }
+  .caution .sig-badge-sm { background:rgba(21,101,192,.15); color:var(--caution-c); }
+  .sum-count { color:var(--muted); font-size:12px; margin-left:auto; }
+  .rpt-list { padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+  .rpt-item { padding:8px 10px; background:#151820; border-radius:6px; }
+  .rpt-meta { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .rpt-firm { color:var(--muted); font-size:11px; }
+  .rpt-title { font-weight:600; font-size:13px; margin-bottom:4px; }
+  .orig-title { font-weight:400; font-size:11px; color:var(--muted); }
+  .rpt-abs { color:#c0c8e0; font-size:12px; line-height:1.65; }
+  .tbadge { font-size:10px; font-weight:700; padding:1px 6px; border-radius:3px; }
+  .tbadge.pos { background:rgba(224,48,32,.2);  color:var(--pos); }
+  .tbadge.neg { background:rgba(21,101,192,.2); color:var(--neg); }
+  .tbadge.neu { background:rgba(158,158,158,.2); color:var(--neu); }
+  .pos { color:var(--pos); } .neg { color:var(--neg); } .neu { color:var(--neu); }
+
+  /* 히트맵 */
+  .heatmap-nav { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .heatmap-nav button { background:var(--card); border:1px solid var(--border); color:var(--text);
+                         padding:5px 14px; border-radius:6px; cursor:pointer; font-size:13px; }
+  .heatmap-nav button:hover { background:#222536; }
+  .heatmap-nav button:disabled { opacity:.3; cursor:default; }
+  #hm-range { color:var(--muted); font-size:13px; }
+  .heatmap-wrap { overflow-x:auto; margin-bottom:8px; }
+  .heatmap { border-collapse:collapse; font-size:11px; white-space:nowrap; }
+  .heatmap th, .heatmap td { padding:4px 7px; border:1px solid var(--border); text-align:center; }
+  .heatmap th { background:var(--card); color:var(--muted); }
+  .sector-label { text-align:left !important; padding-left:10px !important; font-weight:600;
+                   white-space:nowrap; min-width:90px; }
+  .h-empty { background:#1a1d27; color:transparent; }
+  /* 긍정 → 빨강 계열 */
+  .h-pos-1{background:#2a1818} .h-pos-2{background:#3d1f1f} .h-pos-3{background:#561f1f}
+  .h-pos-4{background:#742020} .h-pos-5{background:#922222} .h-pos-6{background:#b02525;color:#fff}
+  .h-pos-7{background:#c83030;color:#fff} .h-pos-8{background:#e03838;color:#fff}
+  .h-pos-9{background:#ff4040;color:#fff;font-weight:700}
+  /* 부정 → 파랑 계열 */
+  .h-neg-1{background:#181a2a} .h-neg-2{background:#1a2040} .h-neg-3{background:#1a2860}
+  .h-neg-4{background:#1a3080} .h-neg-5{background:#183ea0} .h-neg-6{background:#154ebe;color:#fff}
+  .h-neg-7{background:#1260d8;color:#fff} .h-neg-8{background:#1070ee;color:#fff}
+  .h-neg-9{background:#1a80ff;color:#fff;font-weight:700}
+  /* 중립 → 회색 계열 */
+  .h-neu-1{background:#1e1e20} .h-neu-2{background:#252528} .h-neu-3{background:#2d2d32}
+  .h-neu-4{background:#383840} .h-neu-5{background:#46464e} .h-neu-6{background:#57575f;color:#ccc}
+  .h-neu-7{background:#686870;color:#fff} .h-neu-8{background:#787882;color:#fff}
+  .h-neu-9{background:#888892;color:#fff;font-weight:700}
+  .heatmap-legend { font-size:11px; color:var(--muted); margin-top:6px; }
+  .heatmap-legend span { margin-right:10px; }
+
+  /* 푸터 */
+  .footer { color:var(--muted); font-size:11px; border-top:1px solid var(--border);
+             padding-top:14px; margin-top:28px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🧭 <span class="brand">K-FIN</span> 섹터나침반 <span class="week">3월 5주</span>
+      <a href="compass_2026-W13.html" class="week-nav-btn">&#9664; 3월 4주</a>
+      <a href="compass_2026-W15.html" class="week-nav-btn">4월 1주 &#9654;</a>
+    </h1>
+    <div class="subtitle">생성일: 2026-04-21</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="label">이번 주 리포트</div>
+        <div class="value">101건</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">활성 섹터</div>
+        <div class="value">17개</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">강세 섹터</div>
+        <div class="value" style="color:var(--strong-c)">2개</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">긍정 섹터</div>
+        <div class="value" style="color:var(--positive-c)">7개</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">경계 섹터</div>
+        <div class="value" style="color:var(--caution-c)">2개</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">침묵 섹터</div>
+        <div class="value" style="color:var(--dormant-c)">1개</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">이번 주 섹터 신호</div>
+  <div class="signal-grid">
+        <div class="signal-card strong">
+          <div class="sig-header">강세 🔴</div>
+          <ul><li><b>유통</b> <span class="tone-score pos">+1.00</span> <span class="cnt-small" title="한화투자증권">1건/1사</span></li><li><b>S/W 및 플랫폼</b> <span class="tone-score pos">+0.50</span> <span class="cnt-small" title="IBK투자증권">4건/1사</span></li></ul>
+        </div>
+        <div class="signal-card positive">
+          <div class="sig-header">긍정 🟥</div>
+          <ul><li><b>통신</b> <span class="tone-score pos">+0.33</span> <span class="cnt-small" title="유안타증권, 하나증권">3건/2사</span></li><li><b>레저 및 엔터</b> <span class="tone-score pos">+0.27</span> <span class="cnt-small" title="신한투자증권, 유안타증권, 유진투자증권, 하나증권, 한국IR협의회, 한화투자증권">11건/6사</span></li><li><b>신성장 기술</b> <span class="tone-score pos">+0.27</span> <span class="cnt-small" title="SK증권, 대신증권, 신한투자증권, 유안타증권, 유진투자증권">11건/5사</span></li><li><b>소비재</b> <span class="tone-score pos">+0.25</span> <span class="cnt-small" title="SK증권, 교보증권, 키움증권, 한화투자증권">4건/4사</span></li><li><b>제약 및 바이오</b> <span class="tone-score pos">+0.25</span> <span class="cnt-small" title="IBK투자증권, SK증권, 키움증권, 하나증권">4건/4사</span></li><li><b>반도체</b> <span class="tone-score pos">+0.12</span> <span class="cnt-small" title="DS투자증권, SK증권, iM증권, 유안타증권, 유진투자증권, 하나증권">8건/6사</span></li><li><b>전력 및 에너지</b> <span class="tone-score pos">+0.12</span> <span class="cnt-small" title="SK증권, iM증권, 교보증권, 유진투자증권, 하나증권, 한화투자증권">8건/6사</span></li></ul>
+        </div>
+        <div class="signal-card caution">
+          <div class="sig-header">경계 🔵</div>
+          <ul><li><b>건설 및 물류</b> <span class="tone-score neg">-0.25</span> <span class="cnt-small" title="신한투자증권, 유진투자증권, 하나증권">4건/3사</span></li><li><b>기계 및 방산</b> <span class="tone-score neg">-0.33</span> <span class="cnt-small" title="신한투자증권, 하나증권, 한화투자증권">6건/3사</span></li></ul>
+        </div>
+        <div class="signal-card neutral">
+          <div class="sig-header">관망 ⚪</div>
+          <ul><li><b>금융 및 지주</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="SK증권, 신한투자증권, 유안타증권, 하나증권, 한화투자증권">7건/5사</span></li><li><b>화학 및 소재</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="iM증권, 신한투자증권, 유진투자증권, 하나증권">5건/4사</span></li><li><b>이차전지</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="iM증권, 하나증권, 한화투자증권">4건/3사</span></li><li><b>IT 하드웨어</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="교보증권, 유안타증권">3건/2사</span></li><li><b>시장 센티먼트</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="한화투자증권">1건/1사</span></li><li><b>자동차·조선</b> <span class="tone-score neg">-0.06</span> <span class="cnt-small" title="DS투자증권, IBK투자증권, SK증권, 교보증권, 신한투자증권, 유안타증권, 유진투자증권, 하나증권">17건/8사</span></li></ul>
+        </div>
+        <div class="signal-card dormant">
+          <div class="sig-header">침묵 ⚫</div>
+          <ul><li><b>유통 및 통신</b> <span class="tone-score neu">+0.00</span> <span class="cnt-small" title="">0건/0사</span>&nbsp;💤4주</li></ul>
+        </div></div>
+
+  <div class="section-title">강세 · 경계 섹터 리포트</div>
+  <div class="summary-section">
+        <div class="summary-block strong">
+          <div class="sum-header">
+            <span class="sum-sector">유통</span>
+            <span class="sig-badge-sm strong">강세 🔴</span>
+            <span class="sum-count">1건 · 1사 · <span class="pos">+1.00</span></span>
+          </div>
+          <div class="rpt-list"><div class="rpt-item"><div class="rpt-meta"><span class="tbadge pos">긍정</span> <span class="rpt-firm">한화투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/16/20260401_industry_673802000.pdf" target="_blank" class="rpt-link">백화점 전성시대 재개</a> <span class="orig-title">(백화점 전성시대: 지금은 일본백화점의 24년..)</span></div><div class=rpt-abs>백화점 전성시대▶ 지난해부터 백화점 중심의 주가 상승이 나타나고 있음- 지난해 백화점 3사의 주가수익률은 65%로 반등 본격화- 지난해의 흐름이 올해 상반기까지 이어지며 연초대비 롯데쇼핑 65%, 신세계 42%, 현대백화점 -2%를 기록 중- 백화점 전성시대를 이끈 것은 단연 외형성장. 백화점 3사의 기존점성장률은 4Q25 +HSD% 이상에서 1Q26 +LDD% 이상으로 확대260401</div></div></div>
+        </div>
+        <div class="summary-block strong">
+          <div class="sum-header">
+            <span class="sum-sector">S/W 및 플랫폼</span>
+            <span class="sig-badge-sm strong">강세 🔴</span>
+            <span class="sum-count">4건 · 1사 · <span class="pos">+0.50</span></span>
+          </div>
+          <div class="rpt-list"><div class="rpt-item"><div class="rpt-meta"><span class="tbadge pos">긍정</span> <span class="rpt-firm">IBK투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/40/20260403_industry_147652000.pdf" target="_blank" class="rpt-link">크래프톤 AI 모델 브랜드 출범</a> <span class="orig-title">([IBKS Daily] 인터넷/게임)</span></div><div class=rpt-abs>크래프톤, AI 모델 브랜드 '라온' 출범…첫 모델 4종 오픈소스 공개- 크래프톤이 인공지능(AI) 모델 브랜드 '라온(Raon)'을 출범. 크래프톤은 라온을 출시 직후 음성 지원 거대언어모델(LLM), 실시간 음성 대화 모델, 텍스트-음성 변환(TTS) 모델 및 비전 인코더를 글로벌 플랫폼 허깅페이스에 오픈소스로 공개- 이번에 공개된 모델은 라온 스피치, 라온 스피치챗, 라온 오픈TTS, 라온 비전인코더 총</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge pos">긍정</span> <span class="rpt-firm">IBK투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/40/20260331_industry_696932000.pdf" target="_blank" class="rpt-link">펄어비스 게임 '붉은사막' 최고 기록</a> <span class="orig-title">([IBKS Daily] 인터넷/게임)</span></div><div class=rpt-abs>펄어비스 '붉은사막', 스팀 최고 동시접속자 27만명 기록 경신- 펄어비스는 신작 게임 '붉은사막(Crimson Desert)'이 스팀 동시 접속자 27만명을 기록하며 최고 기록을 경신했다고 30일 밝힘- 스팀 이용자 평가도 출시 1주일이 지나면서 글로벌 기준 ‘대체로 긍정적(Generally Positive)’에서 ‘매우 긍정적(Very Positive)’으로 바뀜. 스팀 최고 인기 게임</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">IBK투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/40/20260402_industry_992132000.pdf" target="_blank" class="rpt-link">엔씨 '아이온2' 시즌3 업데이트</a> <span class="orig-title">([IBKS Daily] 인터넷/게임)</span></div><div class=rpt-abs>엔씨 '아이온2', 시즌3 콘텐츠 로드맵 공개 및 신규 시스템 도입- 엔씨는 자사 MMORPG '아이온2' 세 번째 시즌 진입을 앞두고 상세한 업데이트 계획을 1일 밝힘. 오는 8일 개막하는 '시즌3'를 기점으로 대규모 PvE 던전 추가 및 편의성 개편이 본격적으로 이루어진- 오프라인 이용자 대면 행사 '지금 만나러 갑니다'는 오는 11일 서울 강남 알베르 카페에서 개최. 김남준 개발PD와 소인섭 사업실장이 참석하는 이번 행사는 당일 오후 1시부터 4시 50분까지 총 3회에 걸쳐 진행될</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">IBK투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/40/20260401_industry_471025000.pdf" target="_blank" class="rpt-link">제주도 AI 게임산업 메카 도약</a> <span class="orig-title">([IBKS Daily] 인터넷/게임)</span></div><div class=rpt-abs>제주도, 'AI 게임산업 메카로' 토론회 개최- 제주도는 31일 제주콘텐츠진흥원 비인공연장에서 게임 산업계·학계 전문가와 도민 등 150여명이 참석한 가운데 '제주 게임산업 발전을 위한 토론회'를 개최- 토론회 기조강연에선 김정태 동양대 게임학부 교수가 제주의 지리적·환경적 강점을 반영한 '제주형 게임산업 발전 전략'을</div></div></div>
+        </div>
+        <div class="summary-block caution">
+          <div class="sum-header">
+            <span class="sum-sector">건설 및 물류</span>
+            <span class="sig-badge-sm caution">경계 🔵</span>
+            <span class="sum-count">4건 · 3사 · <span class="neg">-0.25</span></span>
+          </div>
+          <div class="rpt-list"><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neg">부정</span> <span class="rpt-firm">신한투자증권</span></div><div class="rpt-title"><a href="https://www.shinhansec.com/siw/insights/research/list/view-popup.do" target="_blank" class="rpt-link">건설업종 급락, 변동성 높은 장세</a> <span class="orig-title">(신한 건설 Weekly(3월 5주차))</span></div><div class=rpt-abs>3/20~3/27일 건설업종 주가는 9.8% 하락하며 KOSPI 대비 3.9%p 언더퍼폼. 미-이란 휴전 협상 불화실성 이어지며 변동성 높은 장세 지속. 건설업종, 단기 급등에 대한 피로도 및 수급 조정으로 주가 큰 폭 하락. 종목별로는 비주간사로서 원전 참여 기대감에 전주 주가 급등했던 GS건설 17% 하락. 그외 원전 관련주 10% 내외 하락. 중견사로는 ‘펜타힐즈W’ 모멘텀 소실에 아이에스동서 13% 하락.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">유진투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/63/20260403_industry_303262000.pdf" target="_blank" class="rpt-link">해외 EPC 기업 2025년 실적 발표</a> <span class="orig-title">(해외 EPC 기업 실적 및 동향)</span></div><div class=rpt-abs>" 해외 EPC 기업(FLR, KBR, TE, SPM, MAIRE, TRE)의 2025년 실적 발표 내용을 통해 수주 동향과 향후 전략을 확인. 주목할 공통점은 1) 전통에너지(오일/가스) 수주 지속 2) 원전/SMR 관심 확대 3) 저탄소 포트폴리오 확대." [Fluor, FLR] ‘25년 연간 매출 155억 달러(-5%yoy)로 소폭 감소. LNG, 가스발전 등 전통에너지 중심에서 원전/SMR, 데이터센터 등으로 성장축을 다변화하고 있는 모습.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">하나증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/57/20260331_industry_325308000.pdf" target="_blank" class="rpt-link">호르무즈 해협 폐쇄 장기화 영향</a> <span class="orig-title">(호르무즈 해협 폐쇄 장기화 영향)</span></div><div class=rpt-abs>주간 투자 전략 및 이슈 점검- 수익률은 건설업이 코스피 대비 3.8% 하회했다. 지난 주 수급은 기관과 연기금, 외인이 모두 매도했다. 기관은 현대건설, GS건설, 대우건설을 크게 매도. 외인은 모두 매도했다. DL이앤씨가 엑스에너지와의 표준화설계 계약 뉴스로 상승한 반면, 나머지 종목들은 하락했다.- 주요 지표로 전국 매매수급동향은 96.4으로 2주 연속 하락했다(-0.10%p). 수도권에서의 매수 둔화 분위기가 뚜렷하게 나타나고 있다.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">유진투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/63/20260330_industry_977945000.pdf" target="_blank" class="rpt-link">아파트 가격 동향, FOBO vs FOMO</a> <span class="orig-title">(건설/부동산 Weekly - FOBO vs FOMO)</span></div><div class=rpt-abs>주간 아파트가격 동향- 매매가격지수: 전국(+0.03%), 수도권(+0.05%), 지방권(+0.00%), 서울(+0.06%)* TOP3 지역: 안양 동안(+0.48%), 전남 무안(+0.42%), 창원 성산(+0.29%)- 전세가격지수: 전국(+0.10%), 수도권(+0.13%), 지방권(+0.06%),</div></div></div>
+        </div>
+        <div class="summary-block caution">
+          <div class="sum-header">
+            <span class="sum-sector">기계 및 방산</span>
+            <span class="sig-badge-sm caution">경계 🔵</span>
+            <span class="sum-count">6건 · 3사 · <span class="neg">-0.33</span></span>
+          </div>
+          <div class="rpt-list"><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neg">부정</span> <span class="rpt-firm">하나증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/57/20260403_industry_818982000.pdf" target="_blank" class="rpt-link">미국의 NATO 탈퇴 위협 시즌2</a> <span class="orig-title">(미국의 NATO 탈퇴 위협 시즌2)</span></div><div class=rpt-abs>NATO 회의론 변화: 경제 논리에서 군사 영역으로 전환최근 미국의 NATO 회의론은 기존 방위비 부담 분담 문제에서 군사적 문제로 성격이 바뀌고 있다. 트럼프 대통령은 현지시각 3월 27일 “NATO가 미국을 위해 있지 않는데 왜 미국이 NATO를 위해 있어야 하냐”는 발언에 이어 4월 1일에는 “미국의 NATO 탈퇴를 고려하고 있다”고 밝혔다. 3월 31일 미국 헤그세스 국방장관도 NATO 집단방위 조항에 대한 재확인을 피하며 관련 판단은 미국 대통령에게 달려 있다고 언급했다.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neg">부정</span> <span class="rpt-firm">신한투자증권</span></div><div class="rpt-title"><a href="https://www.shinhansec.com/siw/insights/research/list/view-popup.do" target="_blank" class="rpt-link">LNG: 전쟁은 끝나도, 상처는 남는다 / 카타르 LNG 공급 차질로 글로벌 에너지 재편</a> <span class="orig-title">(LNG: 전쟁은 끝나도, 상처는 남는다)</span></div><div class=rpt-abs>이란 사태로 인한 LNG 공급망 재편과 산업별 영향이번 카타르 LNG 공급 차질은 단순한 지역 리스크를 넘어 글로벌 에너지 공급망 재편을 촉발하는 사건으로 판단된다. 과거 러시아-우크라이나 전쟁이 PNG에서 LNG로의 구조 전환을 유도했다면, 이번 사태는 LNG 공급망 내부에서의 지역 재배치와 경로 변화라는 점에서 성격이 다르다.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">하나증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/57/20260402_industry_408580000.pdf" target="_blank" class="rpt-link">유럽/북미로 확장되는 한화에어로스페이스의 .. / 한화에어로스페이스 해외진출 모멘텀</a> <span class="orig-title">(유럽/북미로 확장되는 한화에어로스페이스의 ..)</span></div><div class=rpt-abs>2026년 1분기 한화에어로스페이스 주요 수주 및 해외진출 모멘텀 점검2026년 1분기 한화에어로스페이스의 주요 수주 및 해외 진출 모멘텀을 점검했다. 요약하면 1) 유럽 세일즈의 확장, 2) 북미 지상방산 진출의 구체화다. 2026년 1분기 기준 한화에어로스페이스의 수주 파이프라인 규모는 약 45조원으로</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">한화투자증권</span></div><div class="rpt-title"><a href="https://stock.pstatic.net/stock-research/industry/16/20260402_industry_851841000.pdf" target="_blank" class="rpt-link">위성, 패권 전쟁의 다음 승부처 / 미중 패권전쟁의 우주항공 영향</a> <span class="orig-title">(위성, 패권 전쟁의 다음 승부처)</span></div><div class=rpt-abs>I. 핵심 요약우주항공 업종에 대해 Positive 투자의견을 유지한다. 지난 2~3년간 섹터별 리레이팅의 핵심은 단연 미중 패권전쟁이었다. 패권전쟁이 심화되면서 세계는 각자도생의 시대로 접어들었다. 에너지 안보와 반도체 공급망은 물론이고 방위산업에 대한 각국의 주도권 경쟁이 치열하다. 방산은 지상, 항공, 그리고 해양을 넘어 이제는 우주로까지 눈을 돌리고 있다. 우주는 패권 전쟁의 다음 전장이고, 그 전장에서의 무기는 위성이다.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">신한투자증권</span></div><div class="rpt-title"><a href="https://www.shinhansec.com/siw/insights/research/list/view-popup.do" target="_blank" class="rpt-link">이란 사태: 출구 전략과 남은 과제들 / 이란 사태 종전 가능성 시사</a> <span class="orig-title">(이란 사태: 출구 전략과 남은 과제들)</span></div><div class=rpt-abs>협상이 가능한 이유들- 트럼프 미국 대통령은 전쟁이 오래가지 않을 것, 곧 철수할 것이라고 발언. 전일 미국 증시는 급등- 호르무즈 해협의 재개 없이도 종전 가능성을 시사. 군사 행동과 협상을 병행하는 양면 전략- 트럼프 입장에서의 성과는 1) 군사적 목표의 일부 달성: 1만개 이상의 목표물, 핵심 군사시설 타격 주장, 하르그섬 핵심 인프라 압박, 억지력 회복과 협상 우위 확보.…</div></div><div class="rpt-item"><div class="rpt-meta"><span class="tbadge neu">중립</span> <span class="rpt-firm">신한투자증권</span></div><div class="rpt-title"><a href="https://www.shinhansec.com/siw/insights/research/list/view-popup.do" target="_blank" class="rpt-link">이란 사태: 레드라인 붕괴 이후 출구를 찾는 .. / 트럼프 미국의 협상 시간 확보</a> <span class="orig-title">(이란 사태: 레드라인 붕괴 이후 출구를 찾는 ..)</span></div><div class=rpt-abs>압박 극대화 vs 협상 불신, 출구와 결속의 충돌- 트럼프 미국 대통령은 공격 시한의 반복적 유예로 협상 시간 확보. 하르그섬 점령, 핵심 인프라 타격을 경고- 언론의 주된 해석은 1) 군사행동 가능성은 유지하되 에너지, 금융시장 충격 관리가 핵심 변수, 2) ‘미국의 전쟁이 아니다’라는 메시지로 전면전 회피와 책임 분산 전략, 3) 지상군 검토는 언급되지만, 실제로는 단기 개입 후 철수 시나리오 강조 등으로 요약.…</div></div></div>
+        </div></div>
+
+  <div class="section-title">커버리지 히트맵 (12월 5주 ~ 4월 3주)</div>
+  
+<div class="heatmap-nav">
+  <button id="hm-prev" onclick="hmShift(-1)">&#9664; 이전</button>
+  <span id="hm-range"></span>
+  <button id="hm-next" onclick="hmShift(1)">다음 &#9654;</button>
+</div>
+<div class="heatmap-wrap">
+  <table class="heatmap" id="heatmap-tbl">
+    <thead><tr><th class="sector-label">섹터</th><th class="wk-col" data-wi="0">12월 5주</th><th class="wk-col" data-wi="1">1월 1주</th><th class="wk-col" data-wi="2">1월 2주</th><th class="wk-col" data-wi="3">1월 3주</th><th class="wk-col" data-wi="4">1월 4주</th><th class="wk-col" data-wi="5">2월 1주</th><th class="wk-col" data-wi="6">2월 2주</th><th class="wk-col" data-wi="7">2월 3주</th><th class="wk-col" data-wi="8">2월 4주</th><th class="wk-col" data-wi="9">3월 1주</th><th class="wk-col" data-wi="10">3월 2주</th><th class="wk-col" data-wi="11">3월 3주</th><th class="wk-col" data-wi="12">3월 4주</th><th class="wk-col" data-wi="13">3월 5주</th><th class="wk-col" data-wi="14">4월 1주</th><th class="wk-col" data-wi="15">4월 2주</th><th class="wk-col" data-wi="16">4월 3주</th></tr></thead>
+    <tbody><tr><td class="sector-label">자동차·조선</td><td class="h-neu-1 wk-col" data-wi="0" title="12월 5주 자동차·조선: 2건 (긍1/부1)">2</td><td class="h-pos-9 wk-col" data-wi="1" title="1월 1주 자동차·조선: 21건 (긍15/부2)">21</td><td class="h-pos-6 wk-col" data-wi="2" title="1월 2주 자동차·조선: 16건 (긍11/부4)">16</td><td class="h-pos-4 wk-col" data-wi="3" title="1월 3주 자동차·조선: 11건 (긍6/부0)">11</td><td class="h-pos-4 wk-col" data-wi="4" title="1월 4주 자동차·조선: 10건 (긍4/부3)">10</td><td class="h-pos-4 wk-col" data-wi="5" title="2월 1주 자동차·조선: 11건 (긍3/부1)">11</td><td class="h-pos-4 wk-col" data-wi="6" title="2월 2주 자동차·조선: 10건 (긍8/부0)">10</td><td class="h-pos-2 wk-col" data-wi="7" title="2월 3주 자동차·조선: 6건 (긍2/부0)">6</td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 자동차·조선: 6건 (긍1/부0)">6</td><td class="h-neg-7 wk-col" data-wi="9" title="3월 1주 자동차·조선: 17건 (긍4/부5)">17</td><td class="h-neg-4 wk-col" data-wi="10" title="3월 2주 자동차·조선: 11건 (긍1/부6)">11</td><td class="h-pos-4 wk-col" data-wi="11" title="3월 3주 자동차·조선: 11건 (긍5/부1)">11</td><td class="h-pos-5 wk-col" data-wi="12" title="3월 4주 자동차·조선: 12건 (긍7/부3)">12</td><td class="h-neg-7 wk-col" data-wi="13" title="3월 5주 자동차·조선: 17건 (긍1/부2)">17</td><td class="h-pos-5 wk-col" data-wi="14" title="4월 1주 자동차·조선: 13건 (긍7/부3)">13</td><td class="h-pos-4 wk-col" data-wi="15" title="4월 2주 자동차·조선: 10건 (긍7/부0)">10</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 자동차·조선: 2건 (긍0/부0)">2</td></tr><tr><td class="sector-label">신성장 기술</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 신성장 기술: 1건 (긍1/부0)">1</td><td class="h-pos-2 wk-col" data-wi="1" title="1월 1주 신성장 기술: 6건 (긍5/부0)">6</td><td class="h-pos-5 wk-col" data-wi="2" title="1월 2주 신성장 기술: 12건 (긍8/부0)">12</td><td class="h-pos-3 wk-col" data-wi="3" title="1월 3주 신성장 기술: 9건 (긍3/부0)">9</td><td class="h-pos-4 wk-col" data-wi="4" title="1월 4주 신성장 기술: 11건 (긍4/부0)">11</td><td class="h-pos-5 wk-col" data-wi="5" title="2월 1주 신성장 기술: 12건 (긍3/부2)">12</td><td class="h-pos-4 wk-col" data-wi="6" title="2월 2주 신성장 기술: 10건 (긍3/부0)">10</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 신성장 기술: 2건 (긍1/부0)">2</td><td class="h-pos-4 wk-col" data-wi="8" title="2월 4주 신성장 기술: 10건 (긍2/부0)">10</td><td class="h-pos-3 wk-col" data-wi="9" title="3월 1주 신성장 기술: 8건 (긍3/부1)">8</td><td class="h-pos-3 wk-col" data-wi="10" title="3월 2주 신성장 기술: 7건 (긍4/부1)">7</td><td class="h-pos-4 wk-col" data-wi="11" title="3월 3주 신성장 기술: 11건 (긍4/부0)">11</td><td class="h-pos-7 wk-col" data-wi="12" title="3월 4주 신성장 기술: 17건 (긍10/부1)">17</td><td class="h-pos-4 wk-col" data-wi="13" title="3월 5주 신성장 기술: 11건 (긍4/부1)">11</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 신성장 기술: 7건 (긍2/부1)">7</td><td class="h-neu-3 wk-col" data-wi="15" title="4월 2주 신성장 기술: 7건 (긍1/부1)">7</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 신성장 기술: 2건 (긍0/부0)">2</td></tr><tr><td class="sector-label">전력 및 에너지</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 전력 및 에너지: 0건 (긍0/부0)"></td><td class="h-pos-3 wk-col" data-wi="1" title="1월 1주 전력 및 에너지: 9건 (긍6/부2)">9</td><td class="h-pos-3 wk-col" data-wi="2" title="1월 2주 전력 및 에너지: 9건 (긍7/부0)">9</td><td class="h-pos-4 wk-col" data-wi="3" title="1월 3주 전력 및 에너지: 11건 (긍5/부2)">11</td><td class="h-pos-2 wk-col" data-wi="4" title="1월 4주 전력 및 에너지: 6건 (긍4/부1)">6</td><td class="h-pos-1 wk-col" data-wi="5" title="2월 1주 전력 및 에너지: 4건 (긍1/부0)">4</td><td class="h-neg-1 wk-col" data-wi="6" title="2월 2주 전력 및 에너지: 4건 (긍0/부1)">4</td><td class="h-neu-2 wk-col" data-wi="7" title="2월 3주 전력 및 에너지: 5건 (긍1/부1)">5</td><td class="h-neg-3 wk-col" data-wi="8" title="2월 4주 전력 및 에너지: 7건 (긍1/부3)">7</td><td class="h-neg-3 wk-col" data-wi="9" title="3월 1주 전력 및 에너지: 7건 (긍1/부2)">7</td><td class="h-pos-3 wk-col" data-wi="10" title="3월 2주 전력 및 에너지: 7건 (긍2/부1)">7</td><td class="h-pos-6 wk-col" data-wi="11" title="3월 3주 전력 및 에너지: 14건 (긍4/부1)">14</td><td class="h-neg-3 wk-col" data-wi="12" title="3월 4주 전력 및 에너지: 7건 (긍1/부2)">7</td><td class="h-pos-3 wk-col" data-wi="13" title="3월 5주 전력 및 에너지: 8건 (긍2/부1)">8</td><td class="h-pos-4 wk-col" data-wi="14" title="4월 1주 전력 및 에너지: 10건 (긍4/부2)">10</td><td class="h-pos-3 wk-col" data-wi="15" title="4월 2주 전력 및 에너지: 9건 (긍3/부2)">9</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 전력 및 에너지: 3건 (긍1/부0)">3</td></tr><tr><td class="sector-label">IT 하드웨어</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 IT 하드웨어: 0건 (긍0/부0)"></td><td class="h-pos-2 wk-col" data-wi="1" title="1월 1주 IT 하드웨어: 5건 (긍5/부0)">5</td><td class="h-pos-6 wk-col" data-wi="2" title="1월 2주 IT 하드웨어: 14건 (긍8/부0)">14</td><td class="h-pos-3 wk-col" data-wi="3" title="1월 3주 IT 하드웨어: 7건 (긍2/부0)">7</td><td class="h-pos-3 wk-col" data-wi="4" title="1월 4주 IT 하드웨어: 7건 (긍4/부0)">7</td><td class="h-pos-3 wk-col" data-wi="5" title="2월 1주 IT 하드웨어: 9건 (긍5/부2)">9</td><td class="h-pos-2 wk-col" data-wi="6" title="2월 2주 IT 하드웨어: 6건 (긍2/부1)">6</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 IT 하드웨어: 2건 (긍2/부0)">2</td><td class="h-pos-3 wk-col" data-wi="8" title="2월 4주 IT 하드웨어: 7건 (긍4/부0)">7</td><td class="h-pos-2 wk-col" data-wi="9" title="3월 1주 IT 하드웨어: 5건 (긍4/부1)">5</td><td class="h-pos-2 wk-col" data-wi="10" title="3월 2주 IT 하드웨어: 6건 (긍4/부0)">6</td><td class="h-pos-3 wk-col" data-wi="11" title="3월 3주 IT 하드웨어: 9건 (긍6/부1)">9</td><td class="h-pos-3 wk-col" data-wi="12" title="3월 4주 IT 하드웨어: 7건 (긍1/부0)">7</td><td class="h-neu-1 wk-col" data-wi="13" title="3월 5주 IT 하드웨어: 3건 (긍0/부0)">3</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 IT 하드웨어: 9건 (긍5/부0)">9</td><td class="h-pos-3 wk-col" data-wi="15" title="4월 2주 IT 하드웨어: 8건 (긍7/부0)">8</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 IT 하드웨어: 2건 (긍1/부0)">2</td></tr><tr><td class="sector-label">금융 및 지주</td><td class="h-neu-1 wk-col" data-wi="0" title="12월 5주 금융 및 지주: 2건 (긍1/부1)">2</td><td class="h-neg-3 wk-col" data-wi="1" title="1월 1주 금융 및 지주: 8건 (긍2/부3)">8</td><td class="h-pos-4 wk-col" data-wi="2" title="1월 2주 금융 및 지주: 10건 (긍5/부1)">10</td><td class="h-neg-2 wk-col" data-wi="3" title="1월 3주 금융 및 지주: 6건 (긍0/부1)">6</td><td class="h-pos-3 wk-col" data-wi="4" title="1월 4주 금융 및 지주: 8건 (긍4/부1)">8</td><td class="h-pos-1 wk-col" data-wi="5" title="2월 1주 금융 및 지주: 3건 (긍2/부0)">3</td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 금융 및 지주: 3건 (긍1/부0)">3</td><td class="h-neg-1 wk-col" data-wi="7" title="2월 3주 금융 및 지주: 1건 (긍0/부1)">1</td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 금융 및 지주: 6건 (긍2/부0)">6</td><td class="h-pos-3 wk-col" data-wi="9" title="3월 1주 금융 및 지주: 8건 (긍4/부2)">8</td><td class="h-pos-2 wk-col" data-wi="10" title="3월 2주 금융 및 지주: 5건 (긍4/부0)">5</td><td class="h-pos-1 wk-col" data-wi="11" title="3월 3주 금융 및 지주: 1건 (긍1/부0)">1</td><td class="h-pos-2 wk-col" data-wi="12" title="3월 4주 금융 및 지주: 6건 (긍3/부2)">6</td><td class="h-neu-3 wk-col" data-wi="13" title="3월 5주 금융 및 지주: 7건 (긍1/부1)">7</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 금융 및 지주: 8건 (긍3/부0)">8</td><td class="h-neu-2 wk-col" data-wi="15" title="4월 2주 금융 및 지주: 6건 (긍2/부2)">6</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 금융 및 지주: 4건 (긍1/부0)">4</td></tr><tr><td class="sector-label">반도체</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 반도체: 1건 (긍1/부0)">1</td><td class="h-pos-3 wk-col" data-wi="1" title="1월 1주 반도체: 8건 (긍7/부0)">8</td><td class="h-pos-2 wk-col" data-wi="2" title="1월 2주 반도체: 5건 (긍4/부0)">5</td><td class="h-pos-1 wk-col" data-wi="3" title="1월 3주 반도체: 3건 (긍2/부0)">3</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 반도체: 3건 (긍3/부0)">3</td><td class="h-pos-2 wk-col" data-wi="5" title="2월 1주 반도체: 5건 (긍4/부0)">5</td><td class="h-pos-3 wk-col" data-wi="6" title="2월 2주 반도체: 8건 (긍5/부0)">8</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 반도체: 1건 (긍1/부0)">1</td><td class="h-pos-4 wk-col" data-wi="8" title="2월 4주 반도체: 11건 (긍6/부0)">11</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 반도체: 4건 (긍3/부0)">4</td><td class="h-pos-2 wk-col" data-wi="10" title="3월 2주 반도체: 5건 (긍3/부0)">5</td><td class="h-pos-3 wk-col" data-wi="11" title="3월 3주 반도체: 9건 (긍3/부1)">9</td><td class="h-pos-3 wk-col" data-wi="12" title="3월 4주 반도체: 8건 (긍7/부0)">8</td><td class="h-pos-3 wk-col" data-wi="13" title="3월 5주 반도체: 8건 (긍1/부0)">8</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 반도체: 4건 (긍2/부1)">4</td><td class="h-neg-2 wk-col" data-wi="15" title="4월 2주 반도체: 5건 (긍1/부2)">5</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 반도체: 3건 (긍3/부0)">3</td></tr><tr><td class="sector-label">건설 및 물류</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 건설 및 물류: 0건 (긍0/부0)"></td><td class="h-pos-2 wk-col" data-wi="1" title="1월 1주 건설 및 물류: 6건 (긍6/부0)">6</td><td class="h-pos-2 wk-col" data-wi="2" title="1월 2주 건설 및 물류: 6건 (긍4/부0)">6</td><td class="h-pos-2 wk-col" data-wi="3" title="1월 3주 건설 및 물류: 5건 (긍3/부1)">5</td><td class="h-pos-2 wk-col" data-wi="4" title="1월 4주 건설 및 물류: 6건 (긍3/부0)">6</td><td class="h-pos-2 wk-col" data-wi="5" title="2월 1주 건설 및 물류: 5건 (긍1/부0)">5</td><td class="h-pos-2 wk-col" data-wi="6" title="2월 2주 건설 및 물류: 6건 (긍5/부0)">6</td><td class="h-empty wk-col" data-wi="7" title="2월 3주 건설 및 물류: 0건 (긍0/부0)"></td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 건설 및 물류: 6건 (긍2/부1)">6</td><td class="h-pos-2 wk-col" data-wi="9" title="3월 1주 건설 및 물류: 5건 (긍5/부0)">5</td><td class="h-neg-3 wk-col" data-wi="10" title="3월 2주 건설 및 물류: 7건 (긍1/부2)">7</td><td class="h-neu-1 wk-col" data-wi="11" title="3월 3주 건설 및 물류: 4건 (긍1/부1)">4</td><td class="h-pos-4 wk-col" data-wi="12" title="3월 4주 건설 및 물류: 10건 (긍7/부0)">10</td><td class="h-neg-1 wk-col" data-wi="13" title="3월 5주 건설 및 물류: 4건 (긍0/부1)">4</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 건설 및 물류: 9건 (긍6/부1)">9</td><td class="h-pos-3 wk-col" data-wi="15" title="4월 2주 건설 및 물류: 7건 (긍4/부0)">7</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 건설 및 물류: 3건 (긍0/부0)">3</td></tr><tr><td class="sector-label">레저 및 엔터</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 레저 및 엔터: 1건 (긍1/부0)">1</td><td class="h-pos-2 wk-col" data-wi="1" title="1월 1주 레저 및 엔터: 6건 (긍6/부0)">6</td><td class="h-pos-3 wk-col" data-wi="2" title="1월 2주 레저 및 엔터: 9건 (긍7/부0)">9</td><td class="h-neu-1 wk-col" data-wi="3" title="1월 3주 레저 및 엔터: 4건 (긍1/부1)">4</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 레저 및 엔터: 2건 (긍2/부0)">2</td><td class="h-pos-3 wk-col" data-wi="5" title="2월 1주 레저 및 엔터: 8건 (긍6/부0)">8</td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 레저 및 엔터: 4건 (긍3/부0)">4</td><td class="h-empty wk-col" data-wi="7" title="2월 3주 레저 및 엔터: 0건 (긍0/부0)"></td><td class="h-pos-3 wk-col" data-wi="8" title="2월 4주 레저 및 엔터: 7건 (긍2/부0)">7</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 레저 및 엔터: 3건 (긍3/부0)">3</td><td class="h-pos-2 wk-col" data-wi="10" title="3월 2주 레저 및 엔터: 6건 (긍4/부0)">6</td><td class="h-neg-3 wk-col" data-wi="11" title="3월 3주 레저 및 엔터: 7건 (긍1/부2)">7</td><td class="h-pos-1 wk-col" data-wi="12" title="3월 4주 레저 및 엔터: 4건 (긍3/부0)">4</td><td class="h-pos-4 wk-col" data-wi="13" title="3월 5주 레저 및 엔터: 11건 (긍4/부1)">11</td><td class="h-neg-3 wk-col" data-wi="14" title="4월 1주 레저 및 엔터: 7건 (긍1/부6)">7</td><td class="h-pos-3 wk-col" data-wi="15" title="4월 2주 레저 및 엔터: 7건 (긍2/부1)">7</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 레저 및 엔터: 1건 (긍1/부0)">1</td></tr><tr><td class="sector-label">S/W 및 플랫폼</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 S/W 및 플랫폼: 1건 (긍1/부0)">1</td><td class="h-pos-3 wk-col" data-wi="1" title="1월 1주 S/W 및 플랫폼: 8건 (긍5/부0)">8</td><td class="h-pos-2 wk-col" data-wi="2" title="1월 2주 S/W 및 플랫폼: 5건 (긍2/부1)">5</td><td class="h-pos-2 wk-col" data-wi="3" title="1월 3주 S/W 및 플랫폼: 5건 (긍2/부0)">5</td><td class="h-pos-3 wk-col" data-wi="4" title="1월 4주 S/W 및 플랫폼: 8건 (긍8/부0)">8</td><td class="h-neu-2 wk-col" data-wi="5" title="2월 1주 S/W 및 플랫폼: 6건 (긍2/부2)">6</td><td class="h-pos-2 wk-col" data-wi="6" title="2월 2주 S/W 및 플랫폼: 5건 (긍3/부0)">5</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 S/W 및 플랫폼: 2건 (긍2/부0)">2</td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 S/W 및 플랫폼: 5건 (긍2/부0)">5</td><td class="h-pos-2 wk-col" data-wi="9" title="3월 1주 S/W 및 플랫폼: 5건 (긍3/부0)">5</td><td class="h-pos-3 wk-col" data-wi="10" title="3월 2주 S/W 및 플랫폼: 9건 (긍8/부0)">9</td><td class="h-pos-2 wk-col" data-wi="11" title="3월 3주 S/W 및 플랫폼: 6건 (긍3/부0)">6</td><td class="h-pos-2 wk-col" data-wi="12" title="3월 4주 S/W 및 플랫폼: 5건 (긍5/부0)">5</td><td class="h-pos-1 wk-col" data-wi="13" title="3월 5주 S/W 및 플랫폼: 4건 (긍2/부0)">4</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 S/W 및 플랫폼: 7건 (긍4/부0)">7</td><td class="h-pos-2 wk-col" data-wi="15" title="4월 2주 S/W 및 플랫폼: 5건 (긍3/부0)">5</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 S/W 및 플랫폼: 1건 (긍0/부0)">1</td></tr><tr><td class="sector-label">화학 및 소재</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 화학 및 소재: 0건 (긍0/부0)"></td><td class="h-pos-2 wk-col" data-wi="1" title="1월 1주 화학 및 소재: 6건 (긍3/부0)">6</td><td class="h-pos-3 wk-col" data-wi="2" title="1월 2주 화학 및 소재: 7건 (긍4/부1)">7</td><td class="h-neu-2 wk-col" data-wi="3" title="1월 3주 화학 및 소재: 5건 (긍1/부1)">5</td><td class="h-pos-2 wk-col" data-wi="4" title="1월 4주 화학 및 소재: 5건 (긍5/부0)">5</td><td class="h-pos-2 wk-col" data-wi="5" title="2월 1주 화학 및 소재: 5건 (긍2/부0)">5</td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 화학 및 소재: 4건 (긍1/부0)">4</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 화학 및 소재: 2건 (긍1/부0)">2</td><td class="h-neu-1 wk-col" data-wi="8" title="2월 4주 화학 및 소재: 4건 (긍0/부0)">4</td><td class="h-neu-1 wk-col" data-wi="9" title="3월 1주 화학 및 소재: 4건 (긍1/부1)">4</td><td class="h-neg-3 wk-col" data-wi="10" title="3월 2주 화학 및 소재: 7건 (긍0/부4)">7</td><td class="h-neu-1 wk-col" data-wi="11" title="3월 3주 화학 및 소재: 4건 (긍1/부1)">4</td><td class="h-pos-3 wk-col" data-wi="12" title="3월 4주 화학 및 소재: 7건 (긍4/부1)">7</td><td class="h-neu-2 wk-col" data-wi="13" title="3월 5주 화학 및 소재: 5건 (긍0/부0)">5</td><td class="h-pos-2 wk-col" data-wi="14" title="4월 1주 화학 및 소재: 6건 (긍5/부1)">6</td><td class="h-neg-2 wk-col" data-wi="15" title="4월 2주 화학 및 소재: 6건 (긍1/부2)">6</td><td class="h-pos-1 wk-col" data-wi="16" title="4월 3주 화학 및 소재: 4건 (긍1/부0)">4</td></tr><tr><td class="sector-label">소비재</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 소비재: 3건 (긍1/부0)">3</td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 소비재: 4건 (긍2/부1)">4</td><td class="h-pos-3 wk-col" data-wi="2" title="1월 2주 소비재: 7건 (긍3/부1)">7</td><td class="h-neu-3 wk-col" data-wi="3" title="1월 3주 소비재: 9건 (긍2/부2)">9</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 소비재: 4건 (긍3/부0)">4</td><td class="h-pos-1 wk-col" data-wi="5" title="2월 1주 소비재: 2건 (긍1/부0)">2</td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 소비재: 2건 (긍1/부0)">2</td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 소비재: 2건 (긍2/부0)">2</td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 소비재: 6건 (긍2/부1)">6</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 소비재: 3건 (긍2/부0)">3</td><td class="h-neg-2 wk-col" data-wi="10" title="3월 2주 소비재: 5건 (긍1/부2)">5</td><td class="h-neg-3 wk-col" data-wi="11" title="3월 3주 소비재: 7건 (긍0/부1)">7</td><td class="h-pos-2 wk-col" data-wi="12" title="3월 4주 소비재: 5건 (긍3/부2)">5</td><td class="h-pos-1 wk-col" data-wi="13" title="3월 5주 소비재: 4건 (긍1/부0)">4</td><td class="h-pos-3 wk-col" data-wi="14" title="4월 1주 소비재: 8건 (긍3/부0)">8</td><td class="h-neu-2 wk-col" data-wi="15" title="4월 2주 소비재: 5건 (긍1/부1)">5</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 소비재: 3건 (긍0/부0)">3</td></tr><tr><td class="sector-label">제약 및 바이오</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 제약 및 바이오: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 제약 및 바이오: 4건 (긍4/부0)">4</td><td class="h-neg-1 wk-col" data-wi="2" title="1월 2주 제약 및 바이오: 4건 (긍1/부2)">4</td><td class="h-pos-4 wk-col" data-wi="3" title="1월 3주 제약 및 바이오: 10건 (긍3/부2)">10</td><td class="h-pos-2 wk-col" data-wi="4" title="1월 4주 제약 및 바이오: 5건 (긍2/부1)">5</td><td class="h-pos-2 wk-col" data-wi="5" title="2월 1주 제약 및 바이오: 6건 (긍3/부0)">6</td><td class="h-neg-1 wk-col" data-wi="6" title="2월 2주 제약 및 바이오: 3건 (긍1/부2)">3</td><td class="h-neu-1 wk-col" data-wi="7" title="2월 3주 제약 및 바이오: 2건 (긍0/부0)">2</td><td class="h-pos-2 wk-col" data-wi="8" title="2월 4주 제약 및 바이오: 5건 (긍5/부0)">5</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 제약 및 바이오: 4건 (긍2/부1)">4</td><td class="h-pos-2 wk-col" data-wi="10" title="3월 2주 제약 및 바이오: 5건 (긍3/부1)">5</td><td class="h-neu-1 wk-col" data-wi="11" title="3월 3주 제약 및 바이오: 3건 (긍0/부0)">3</td><td class="h-pos-2 wk-col" data-wi="12" title="3월 4주 제약 및 바이오: 5건 (긍3/부1)">5</td><td class="h-pos-1 wk-col" data-wi="13" title="3월 5주 제약 및 바이오: 4건 (긍2/부1)">4</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 제약 및 바이오: 3건 (긍2/부1)">3</td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 제약 및 바이오: 4건 (긍3/부0)">4</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 제약 및 바이오: 2건 (긍0/부0)">2</td></tr><tr><td class="sector-label">이차전지</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 이차전지: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 이차전지: 4건 (긍2/부1)">4</td><td class="h-neu-1 wk-col" data-wi="2" title="1월 2주 이차전지: 2건 (긍1/부1)">2</td><td class="h-neu-1 wk-col" data-wi="3" title="1월 3주 이차전지: 4건 (긍1/부1)">4</td><td class="h-empty wk-col" data-wi="4" title="1월 4주 이차전지: 0건 (긍0/부0)"></td><td class="h-neu-1 wk-col" data-wi="5" title="2월 1주 이차전지: 4건 (긍1/부1)">4</td><td class="h-neu-1 wk-col" data-wi="6" title="2월 2주 이차전지: 3건 (긍1/부1)">3</td><td class="h-neu-1 wk-col" data-wi="7" title="2월 3주 이차전지: 1건 (긍0/부0)">1</td><td class="h-neu-1 wk-col" data-wi="8" title="2월 4주 이차전지: 3건 (긍1/부1)">3</td><td class="h-pos-2 wk-col" data-wi="9" title="3월 1주 이차전지: 6건 (긍5/부1)">6</td><td class="h-neu-1 wk-col" data-wi="10" title="3월 2주 이차전지: 2건 (긍1/부1)">2</td><td class="h-pos-2 wk-col" data-wi="11" title="3월 3주 이차전지: 5건 (긍4/부0)">5</td><td class="h-neg-1 wk-col" data-wi="12" title="3월 4주 이차전지: 1건 (긍0/부1)">1</td><td class="h-neu-1 wk-col" data-wi="13" title="3월 5주 이차전지: 4건 (긍0/부0)">4</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 이차전지: 1건 (긍1/부0)">1</td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 이차전지: 3건 (긍1/부0)">3</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 이차전지: 1건 (긍0/부0)">1</td></tr><tr><td class="sector-label">통신</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 통신: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 통신: 4건 (긍3/부0)">4</td><td class="h-neu-1 wk-col" data-wi="2" title="1월 2주 통신: 4건 (긍1/부1)">4</td><td class="h-pos-1 wk-col" data-wi="3" title="1월 3주 통신: 4건 (긍3/부0)">4</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 통신: 2건 (긍2/부0)">2</td><td class="h-neu-1 wk-col" data-wi="5" title="2월 1주 통신: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 통신: 1건 (긍1/부0)">1</td><td class="h-neu-1 wk-col" data-wi="7" title="2월 3주 통신: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="8" title="2월 4주 통신: 2건 (긍1/부0)">2</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 통신: 3건 (긍3/부0)">3</td><td class="h-pos-1 wk-col" data-wi="10" title="3월 2주 통신: 2건 (긍2/부0)">2</td><td class="h-pos-2 wk-col" data-wi="11" title="3월 3주 통신: 5건 (긍2/부1)">5</td><td class="h-pos-1 wk-col" data-wi="12" title="3월 4주 통신: 4건 (긍3/부1)">4</td><td class="h-pos-1 wk-col" data-wi="13" title="3월 5주 통신: 3건 (긍1/부0)">3</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 통신: 3건 (긍1/부0)">3</td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 통신: 2건 (긍2/부0)">2</td><td class="h-empty wk-col" data-wi="16" title="4월 3주 통신: 0건 (긍0/부0)"></td></tr><tr><td class="sector-label">기계 및 방산</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 기계 및 방산: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 기계 및 방산: 1건 (긍1/부0)">1</td><td class="h-pos-1 wk-col" data-wi="2" title="1월 2주 기계 및 방산: 1건 (긍1/부0)">1</td><td class="h-neu-1 wk-col" data-wi="3" title="1월 3주 기계 및 방산: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 기계 및 방산: 1건 (긍1/부0)">1</td><td class="h-empty wk-col" data-wi="5" title="2월 1주 기계 및 방산: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="6" title="2월 2주 기계 및 방산: 0건 (긍0/부0)"></td><td class="h-neg-1 wk-col" data-wi="7" title="2월 3주 기계 및 방산: 1건 (긍0/부1)">1</td><td class="h-empty wk-col" data-wi="8" title="2월 4주 기계 및 방산: 0건 (긍0/부0)"></td><td class="h-neg-2 wk-col" data-wi="9" title="3월 1주 기계 및 방산: 6건 (긍1/부4)">6</td><td class="h-neu-1 wk-col" data-wi="10" title="3월 2주 기계 및 방산: 3건 (긍1/부1)">3</td><td class="h-neg-1 wk-col" data-wi="11" title="3월 3주 기계 및 방산: 1건 (긍0/부1)">1</td><td class="h-neu-1 wk-col" data-wi="12" title="3월 4주 기계 및 방산: 1건 (긍0/부0)">1</td><td class="h-neg-2 wk-col" data-wi="13" title="3월 5주 기계 및 방산: 6건 (긍0/부2)">6</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 기계 및 방산: 4건 (긍4/부0)">4</td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 기계 및 방산: 3건 (긍2/부1)">3</td><td class="h-neu-1 wk-col" data-wi="16" title="4월 3주 기계 및 방산: 1건 (긍0/부0)">1</td></tr><tr><td class="sector-label">시장 센티먼트</td><td class="h-pos-1 wk-col" data-wi="0" title="12월 5주 시장 센티먼트: 1건 (긍1/부0)">1</td><td class="h-neu-1 wk-col" data-wi="1" title="1월 1주 시장 센티먼트: 1건 (긍0/부0)">1</td><td class="h-empty wk-col" data-wi="2" title="1월 2주 시장 센티먼트: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="3" title="1월 3주 시장 센티먼트: 2건 (긍1/부0)">2</td><td class="h-pos-1 wk-col" data-wi="4" title="1월 4주 시장 센티먼트: 3건 (긍3/부0)">3</td><td class="h-pos-1 wk-col" data-wi="5" title="2월 1주 시장 센티먼트: 2건 (긍1/부0)">2</td><td class="h-neu-1 wk-col" data-wi="6" title="2월 2주 시장 센티먼트: 2건 (긍0/부0)">2</td><td class="h-neu-1 wk-col" data-wi="7" title="2월 3주 시장 센티먼트: 1건 (긍0/부0)">1</td><td class="h-neu-1 wk-col" data-wi="8" title="2월 4주 시장 센티먼트: 2건 (긍1/부1)">2</td><td class="h-pos-1 wk-col" data-wi="9" title="3월 1주 시장 센티먼트: 2건 (긍1/부0)">2</td><td class="h-pos-1 wk-col" data-wi="10" title="3월 2주 시장 센티먼트: 2건 (긍1/부0)">2</td><td class="h-neu-1 wk-col" data-wi="11" title="3월 3주 시장 센티먼트: 1건 (긍0/부0)">1</td><td class="h-neg-1 wk-col" data-wi="12" title="3월 4주 시장 센티먼트: 4건 (긍0/부1)">4</td><td class="h-neu-1 wk-col" data-wi="13" title="3월 5주 시장 센티먼트: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="14" title="4월 1주 시장 센티먼트: 3건 (긍1/부0)">3</td><td class="h-neu-1 wk-col" data-wi="15" title="4월 2주 시장 센티먼트: 2건 (긍0/부0)">2</td><td class="h-empty wk-col" data-wi="16" title="4월 3주 시장 센티먼트: 0건 (긍0/부0)"></td></tr><tr><td class="sector-label">유통</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 유통: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="1" title="1월 1주 유통: 4건 (긍3/부0)">4</td><td class="h-pos-1 wk-col" data-wi="2" title="1월 2주 유통: 2건 (긍1/부0)">2</td><td class="h-neu-1 wk-col" data-wi="3" title="1월 3주 유통: 2건 (긍0/부0)">2</td><td class="h-neg-1 wk-col" data-wi="4" title="1월 4주 유통: 3건 (긍1/부2)">3</td><td class="h-empty wk-col" data-wi="5" title="2월 1주 유통: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="6" title="2월 2주 유통: 2건 (긍1/부0)">2</td><td class="h-empty wk-col" data-wi="7" title="2월 3주 유통: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="8" title="2월 4주 유통: 1건 (긍1/부0)">1</td><td class="h-neu-1 wk-col" data-wi="9" title="3월 1주 유통: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="10" title="3월 2주 유통: 3건 (긍2/부1)">3</td><td class="h-pos-1 wk-col" data-wi="11" title="3월 3주 유통: 1건 (긍1/부0)">1</td><td class="h-pos-1 wk-col" data-wi="12" title="3월 4주 유통: 2건 (긍2/부0)">2</td><td class="h-pos-1 wk-col" data-wi="13" title="3월 5주 유통: 1건 (긍1/부0)">1</td><td class="h-neu-1 wk-col" data-wi="14" title="4월 1주 유통: 1건 (긍0/부0)">1</td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 유통: 3건 (긍2/부0)">3</td><td class="h-empty wk-col" data-wi="16" title="4월 3주 유통: 0건 (긍0/부0)"></td></tr><tr><td class="sector-label">유통 및 통신</td><td class="h-empty wk-col" data-wi="0" title="12월 5주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="1" title="1월 1주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="2" title="1월 2주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="3" title="1월 3주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="4" title="1월 4주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="5" title="2월 1주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="6" title="2월 2주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="7" title="2월 3주 유통 및 통신: 1건 (긍1/부0)">1</td><td class="h-empty wk-col" data-wi="8" title="2월 4주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="9" title="3월 1주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="10" title="3월 2주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="11" title="3월 3주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="12" title="3월 4주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="13" title="3월 5주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-empty wk-col" data-wi="14" title="4월 1주 유통 및 통신: 0건 (긍0/부0)"></td><td class="h-pos-1 wk-col" data-wi="15" title="4월 2주 유통 및 통신: 1건 (긍1/부0)">1</td><td class="h-empty wk-col" data-wi="16" title="4월 3주 유통 및 통신: 0건 (긍0/부0)"></td></tr></tbody>
+  </table>
+  <div class="heatmap-legend">
+    <span class="h-pos-5">■</span> 긍정톤 &nbsp;
+    <span class="h-neg-5">■</span> 부정톤 &nbsp;
+    <span class="h-neu-5">■</span> 중립톤 &nbsp;
+    <span style="color:#3d4460">□</span> 발간없음
+  </div>
+</div>
+<script>
+(function(){
+  const N = 17;
+  const WIN = 8;
+  const weekLabels = ["12월 5주", "1월 1주", "1월 2주", "1월 3주", "1월 4주", "2월 1주", "2월 2주", "2월 3주", "2월 4주", "3월 1주", "3월 2주", "3월 3주", "3월 4주", "3월 5주", "4월 1주", "4월 2주", "4월 3주"];
+  let offset = Math.max(0, N - WIN);
+
+  function update() {
+    document.querySelectorAll('.wk-col').forEach(el => {
+      const wi = parseInt(el.dataset.wi);
+      el.style.display = (wi >= offset && wi < offset + WIN) ? '' : 'none';
+    });
+    const lo = weekLabels[offset] || '';
+    const hi = weekLabels[Math.min(offset + WIN - 1, N - 1)] || '';
+    document.getElementById('hm-range').textContent = lo + ' ~ ' + hi;
+    document.getElementById('hm-prev').disabled = offset <= 0;
+    document.getElementById('hm-next').disabled = offset + WIN >= N;
+  }
+
+  window.hmShift = function(dir) {
+    offset = Math.max(0, Math.min(offset + dir, N - WIN));
+    update();
+  };
+
+  update();
+})();
+</script>
+
+  <div class="footer">
+    데이터 출처: Naver Finance 산업리포트 &nbsp;|&nbsp; K-FIN 섹터나침반 v1.3
+  </div>
+
+</div>
+</body>
+</html>
