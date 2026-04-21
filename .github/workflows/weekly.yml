@@ -1,0 +1,55 @@
+name: 주간 섹터나침반 자동 생성
+
+on:
+  schedule:
+    - cron: '30 3 * * 1'   # 매주 월요일 03:30 UTC = 12:30 KST
+  workflow_dispatch:         # 수동 실행 버튼
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install requests beautifulsoup4 groq
+
+      - name: GROQ_API_KEY 환경변수 설정
+        run: echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> $GITHUB_ENV
+
+      - name: env_loader 환경변수 패치
+        run: |
+          # env_loader.py가 파일 대신 환경변수에서도 읽도록 패치
+          python -c "
+          import os, pathlib
+          src = pathlib.Path('env_loader.py').read_text()
+          if 'os.environ' not in src:
+              patch = '''
+          import os as _os
+          def get_key(name):
+              val = _os.environ.get(name)
+              if val:
+                  return val
+          '''
+              pathlib.Path('env_loader.py').write_text(patch + src)
+              print('env_loader 패치 완료')
+          else:
+              print('env_loader 이미 환경변수 지원')
+          "
+
+      - name: git 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 주간 자동화 실행
+        run: python weekly_run.py

@@ -15,9 +15,9 @@ BASE_URL = "https://finance.naver.com/research/industry_list.naver"
 DETAIL_URL = "https://finance.naver.com/research/industry_read.naver"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
-# 수집 범위
+# 수집 범위 (CLI에서 오버라이드 가능)
 DATE_FROM = date(2026, 1, 1)
-DATE_TO   = date(2026, 4, 20)
+DATE_TO   = date.today()
 
 
 def init_db(conn):
@@ -204,4 +204,11 @@ def collect(max_pages: int = 55):
 
 
 if __name__ == "__main__":
+    import sys
+    # --from YYYY-MM-DD  --to YYYY-MM-DD
+    args = sys.argv[1:]
+    if '--from' in args:
+        DATE_FROM = date.fromisoformat(args[args.index('--from') + 1])
+    if '--to' in args:
+        DATE_TO = date.fromisoformat(args[args.index('--to') + 1])
     collect()

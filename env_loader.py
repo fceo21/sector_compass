@@ -24,5 +24,6 @@ def load_env() -> dict:
 
 
 def get_key(name: str) -> str | None:
-    """키 이름으로 값 조회. 없으면 None"""
-    return load_env().get(name)
+    """키 이름으로 값 조회. 환경변수 우선, 없으면 .env 파일 조회"""
+    import os
+    return os.environ.get(name) or load_env().get(name)

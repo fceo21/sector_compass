@@ -104,24 +104,38 @@ def classify_batch(batch: list[dict], client) -> list[str] | None:
         return None
 
 
-def run(dry_run: bool = False):
-    """전체 실행"""
+def run(dry_run: bool = False, since: str | None = None):
+    """전체 실행. since=YYYY-MM-DD 이면 해당 날짜 이후 신규 건만 처리"""
     api_key = get_key("GROQ_API_KEY")
     if not api_key:
         print("오류: GROQ_API_KEY를 찾을 수 없습니다 (C:\\cowork\\.claude\\.env)")
         return
 
-    # 대상 조회: abstract 있는 전체 (LLM 재분류)
     conn = sqlite3.connect(DB_PATH)
-    rows = conn.execute("""
-        SELECT id,
-               COALESCE(sector_refined, sector) AS sector,
-               title,
-               abstract
-        FROM raw_reports
-        WHERE abstract IS NOT NULL AND abstract != ''
-        ORDER BY report_date DESC
-    """).fetchall()
+    if since:
+        # 신규 수집분 중 tone이 기본값(키워드 기반)인 것만 재분류
+        rows = conn.execute("""
+            SELECT id,
+                   COALESCE(sector_refined, sector) AS sector,
+                   title,
+                   abstract
+            FROM raw_reports
+            WHERE abstract IS NOT NULL AND abstract != ''
+              AND report_date >= ?
+            ORDER BY report_date DESC
+        """, (since,)).fetchall()
+        print(f"[since {since}] 신규 대상: {len(rows)}건")
+    else:
+        # 전체 재분류
+        rows = conn.execute("""
+            SELECT id,
+                   COALESCE(sector_refined, sector) AS sector,
+                   title,
+                   abstract
+            FROM raw_reports
+            WHERE abstract IS NOT NULL AND abstract != ''
+            ORDER BY report_date DESC
+        """).fetchall()
     conn.close()
 
     total = len(rows)
@@ -180,5 +194,8 @@ def run(dry_run: bool = False):
 
 
 if __name__ == "__main__":
-    dry = "--dry-run" in sys.argv
-    run(dry_run=dry)
+    dry   = "--dry-run" in sys.argv
+    since = None
+    if "--since" in sys.argv:
+        since = sys.argv[sys.argv.index("--since") + 1]
+    run(dry_run=dry, since=since)
